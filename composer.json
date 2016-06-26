@@ -1,0 +1,25 @@
+{
+    "name": "kitchenu/slim-debugbar",
+    "type": "library",
+    "description": "PHP Debugbar integration for Slim Framework 3",
+    "keywords": ["slim","framework","debugbar","debug"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kitchenu"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "psr/http-message": "^1.0",
+        "maximebf/debugbar": "~1.11.0|~1.12.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kitchenu\\Debugbar\\": "src"
+        }
+    }
+}
