@@ -16,22 +16,37 @@ use Slim\Interfaces\RouterInterface;
 
 class SlimDebugBar extends DebugBar
 {
-    public function __construct()
+    /**
+     * @parama  array $setting
+     */
+    public function __construct($setting)
     {
-        $this->addCollector(new PhpInfoCollector());
-        $this->addCollector(new MessagesCollector());
+        $collectorsSetting = $setting['collectors'];
 
-        $this->addCollector(new TimeDataCollector());
-        $this->startMeasure('app', 'App');
-
-        $this->addCollector(new MemoryCollector());
-
-        try {
-            $this->addCollector(new ExceptionsCollector());
-        } catch (Exception $e) {
+        if ($collectorsSetting['phpinfo']) {
+            $this->addCollector(new PhpInfoCollector());
         }
 
-        $this->addCollector(new RequestDataCollector());
+        if ($collectorsSetting['messages']) {
+            $this->addCollector(new MessagesCollector());
+        }
+
+        if ($collectorsSetting['time']) {
+            $this->addCollector(new TimeDataCollector());
+            $this->startMeasure('app', 'App');
+        }
+
+        if ($collectorsSetting['memory']) {
+            $this->addCollector(new MemoryCollector());
+        }
+
+        if ($collectorsSetting['exceptions']) {
+            $this->addCollector(new ExceptionsCollector());
+        }
+
+        if ($collectorsSetting['request']) {
+            $this->addCollector(new RequestDataCollector());
+        }
     }
 
     /**
@@ -63,10 +78,7 @@ class SlimDebugBar extends DebugBar
         if ($this->hasCollector('time')) {
             /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
             $collector = $this->getCollector('time');
-            try {
-                $collector->stopMeasure($name);
-            } catch (Exception $e) {
-            }
+            $collector->stopMeasure($name);
         }
     }
 

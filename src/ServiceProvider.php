@@ -8,34 +8,46 @@ use Slim\App;
 class ServiceProvider
 {
     /**
-     * The App instance.
+     * Default settings
      *
-     * @var App
+     * @var array
      */
-    protected $app;
+    protected $setting = [
+        'enabled'    => true,
+        'collectors' => [
+            'phpinfo'    => true,  // Php version
+            'messages'   => true,  // Messages
+            'time'       => true,  // Time Datalogger
+            'memory'     => true,  // Memory usage
+            'exceptions' => true,  // Exception displayer
+            'request'    => true,  // Request logger
+        ]
+    ];
 
     /**
-     * @param  App
+     * @param  array $setting
      */
-    public function __construct(App $app)
+    public function __construct($setting = [])
     {
-        $this->app = $app;
+        $this->setting = array_merge($this->setting, $setting);
     }
 
     /**
      * Register DebugBar service.
-     * 
+     *
+     * @param  App $app
+     *
      * @return void
      */
-    public function register()
+    public function register(App $app)
     {
-        $container = $this->app->getContainer();
+        $container = $app->getContainer();
 
         $container['debugbar'] = function ($container) {
-            return new SlimDebugBar($container->get('router'), $container->get('request'));
+            return new SlimDebugBar($this->setting);
         };
 
-        $this->app->group('/_debugbar', function() {
+        $app->group('/_debugbar', function() {
             $this->get('/assets/stylesheets', 'Kitchenu\Debugbar\Controllers\AssetController:css')
                 ->setName('debugbar-assets-css');
 
@@ -43,12 +55,10 @@ class ServiceProvider
                 ->setName('debugbar-assets-js');
         });
 
-        $enabled = $container->get('settings')['displayErrorDetails'];
-
-        if (!$enabled) {
+        if (!$this->setting['enabled']) {
             return;
         }
 
-        $this->app->add(new Debugbar($container['debugbar'], $container['router']));
+        $app->add(new Debugbar($container['debugbar'], $container['router']));
     }
 }
