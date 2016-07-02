@@ -13,7 +13,7 @@ composer require kitchenu/slim-debugbar
 Register a Provider
 
 ```
-$app = new Slim\App($config);
+$app = new Slim\App();
 
 $provider = new Kitchenu\Debugbar\ServiceProvider();
 $provider->register($app);

@@ -12,7 +12,7 @@ class ServiceProvider
      *
      * @var array
      */
-    protected $setting = [
+    protected $settings = [
         'enabled'    => true,
         'collectors' => [
             'phpinfo'    => true,  // Php version
@@ -25,11 +25,11 @@ class ServiceProvider
     ];
 
     /**
-     * @param  array $setting
+     * @param  array $settings
      */
-    public function __construct($setting = [])
+    public function __construct(array $settings = [])
     {
-        $this->setting = array_merge($this->setting, $setting);
+        $this->settings = array_merge($this->settings, $settings);
     }
 
     /**
@@ -43,8 +43,8 @@ class ServiceProvider
     {
         $container = $app->getContainer();
 
-        $container['debugbar'] = function ($container) {
-            return new SlimDebugBar($this->setting);
+        $container['debugbar'] = function () {
+            return new SlimDebugBar($this->settings);
         };
 
         $app->group('/_debugbar', function() {
@@ -55,7 +55,7 @@ class ServiceProvider
                 ->setName('debugbar-assets-js');
         });
 
-        if (!$this->setting['enabled']) {
+        if (!$this->settings['enabled']) {
             return;
         }
 

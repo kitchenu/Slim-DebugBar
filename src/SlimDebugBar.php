@@ -19,32 +19,32 @@ class SlimDebugBar extends DebugBar
     /**
      * @parama  array $setting
      */
-    public function __construct($setting)
+    public function __construct($settings)
     {
-        $collectorsSetting = $setting['collectors'];
+        $collectorsSettings = $settings['collectors'];
 
-        if ($collectorsSetting['phpinfo']) {
+        if ($collectorsSettings['phpinfo']) {
             $this->addCollector(new PhpInfoCollector());
         }
 
-        if ($collectorsSetting['messages']) {
+        if ($collectorsSettings['messages']) {
             $this->addCollector(new MessagesCollector());
         }
 
-        if ($collectorsSetting['time']) {
+        if ($collectorsSettings['time']) {
             $this->addCollector(new TimeDataCollector());
             $this->startMeasure('app', 'App');
         }
 
-        if ($collectorsSetting['memory']) {
+        if ($collectorsSettings['memory']) {
             $this->addCollector(new MemoryCollector());
         }
 
-        if ($collectorsSetting['exceptions']) {
+        if ($collectorsSettings['exceptions']) {
             $this->addCollector(new ExceptionsCollector());
         }
 
-        if ($collectorsSetting['request']) {
+        if ($collectorsSettings['request']) {
             $this->addCollector(new RequestDataCollector());
         }
     }
@@ -124,7 +124,9 @@ class SlimDebugBar extends DebugBar
      */
     public function modifyResponse(ResponseInterface $response, RouterInterface $router)
     {
-        if (
+        if ($this->isRedirection($response) && session_status() == PHP_SESSION_ACTIVE) {
+            $this->stackData();
+        } elseif (
             $response->hasHeader('Content-Type') &&
             strpos($response->getHeaderLine('Content-Type'), 'html'))
         {
@@ -132,6 +134,18 @@ class SlimDebugBar extends DebugBar
         }
 
         return $response;
+    }
+
+    /**
+     * Is this response a redirection?
+     * 
+     * @param  ResponseInterface $response
+     *
+     * @return bool
+     */
+    protected function isRedirection(ResponseInterface $response)
+    {
+        return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
     }
 
     /**
