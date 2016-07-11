@@ -13,7 +13,12 @@ class ServiceProvider
      * @var array
      */
     protected $settings = [
-        'enabled'    => true,
+        'enabled' => true,
+        'storage' => [
+            'enabled' => true,
+            'path'    => __DIR__ . '/../../../../debugbar',
+        ],
+        'capture_ajax' => true,
         'collectors' => [
             'phpinfo'    => true,  // Php version
             'messages'   => true,  // Messages
@@ -43,11 +48,14 @@ class ServiceProvider
     {
         $container = $app->getContainer();
 
-        $container['debugbar'] = function () {
-            return new SlimDebugBar($this->settings);
+        $container['debugbar'] = function ($container) {
+            return new SlimDebugBar($container, $this->settings);
         };
 
         $app->group('/_debugbar', function() {
+            $this->get('/open', 'Kitchenu\Debugbar\Controllers\OpenHandlerController:handle')
+                ->setName('debugbar-openhandler');
+
             $this->get('/assets/stylesheets', 'Kitchenu\Debugbar\Controllers\AssetController:css')
                 ->setName('debugbar-assets-css');
 

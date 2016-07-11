@@ -3,7 +3,6 @@
 namespace Kitchenu\Debugbar\Middleware;
 
 use Kitchenu\Debugbar\SlimDebugBar;
-use Slim\Interfaces\RouterInterface;
 
 class Debugbar
 {
@@ -15,22 +14,13 @@ class Debugbar
     protected $debugbar;
 
     /**
-     * The Router instance
-     *
-     * @var Router
-     */
-    protected $router;
-
-    /**
      * Create a new middleware instance.
      *
      * @param  SlimDebugBar $debugbar
-     * @param  RouterInterface $router
      */
-    public function __construct(SlimDebugBar $debugbar, RouterInterface $router)
+    public function __construct(SlimDebugBar $debugbar)
     {
         $this->debugbar = $debugbar;
-        $this->router = $router;
     }
 
     /**
@@ -47,7 +37,7 @@ class Debugbar
         $response = $next($request, $response);
 
         // Modify the response to add the Debugbar
-        $this->debugbar->modifyResponse($response, $this->router);
+        $this->debugbar->modifyResponse($response);
 
         return $response;
     }

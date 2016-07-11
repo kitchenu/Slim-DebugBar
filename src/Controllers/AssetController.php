@@ -2,36 +2,20 @@
 
 namespace Kitchenu\Debugbar\Controllers;
 
-use Interop\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 
-class AssetController
+class AssetController extends Controller
 {
-    /**
-     * The DebugBar instance
-     *
-     * @var \Kitchenu\Debugbar\SlimDebugBar
-     */
-    protected $debugbar;
-
-    /**
-     * @param  ContainerInterface $ci
-     */
-    public function __construct(ContainerInterface $ci)
-    {
-        $this->debugbar = $ci->get('debugbar');
-    }
-
     /**
      * Return the javascript for the Debugbar
      *
-     * @param  RequestInterface $request
-     * @param  ResponseInterface $response
+     * @param  Request $request
+     * @param  Response $response
      * @param  array $args
      * @return ResponseInterface
      */
-    public function js(RequestInterface $request, ResponseInterface $response, $args)
+    public function js(Request $request, Response $response, $args)
     {
         $renderer = $this->debugbar->getJavascriptRenderer();
 
@@ -45,12 +29,12 @@ class AssetController
     /**
      * Return the stylesheets for the Debugbar
      * 
-     * @param  RequestInterface $request
-     * @param  ResponseInterface $response
+     * @param  Request $request
+     * @param  Response $response
      * @param  array $args
      * @return ResponseInterface
      */
-    public function css(RequestInterface $request, ResponseInterface $response, $args)
+    public function css(Request $request, Response $response, $args)
     {
         $renderer = $this->debugbar->getJavascriptRenderer();
 

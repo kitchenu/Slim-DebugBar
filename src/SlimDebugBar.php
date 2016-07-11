@@ -10,17 +10,36 @@ use DebugBar\DataCollector\MessagesCollector;
 use DebugBar\DataCollector\PhpInfoCollector;
 use DebugBar\DataCollector\RequestDataCollector;
 use DebugBar\DataCollector\TimeDataCollector;
+use DebugBar\Storage\FileStorage;
 use Exception;
-use Psr\Http\Message\ResponseInterface;
-use Slim\Interfaces\RouterInterface;
+use Interop\Container\ContainerInterface as Container;
+use Psr\Http\Message\ResponseInterface as Response;
 
 class SlimDebugBar extends DebugBar
 {
     /**
-     * @parama  array $setting
+     * @var Container
      */
-    public function __construct($settings)
+    protected $container;
+
+    /**
+     * @var array
+     */
+    protected $settings;
+
+    /**
+     * @param Container $container
+     * @param array $settings
+     */
+    public function __construct(Container $container, $settings)
     {
+        $this->container = $container;
+        $this->settings = $settings;
+
+        if ($settings['storage']['enabled']) {
+            $this->setStorage(new FileStorage($settings['storage']['path']));
+        }
+
         $collectorsSettings = $settings['collectors'];
 
         if ($collectorsSettings['phpinfo']) {
@@ -47,6 +66,9 @@ class SlimDebugBar extends DebugBar
         if ($collectorsSettings['request']) {
             $this->addCollector(new RequestDataCollector());
         }
+
+        $renderer = $this->getJavascriptRenderer();
+        $renderer->setBindAjaxHandlerToXHR($settings['capture_ajax']);
     }
 
     /**
@@ -117,50 +139,139 @@ class SlimDebugBar extends DebugBar
     /**
      * Modify the response and inject the debugbar
      *
-     * @param  ResponseInterface $response
-     * @param  RouterInterface $router
+     * @param  Response $response
      *
-     * @return ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
-    public function modifyResponse(ResponseInterface $response, RouterInterface $router)
+    public function modifyResponse(Response $response)
     {
+        if ($this->isDebugbarRequest()) {
+            return $response;
+        }
+
         if ($this->isRedirection($response) && session_status() == PHP_SESSION_ACTIVE) {
             $this->stackData();
+        } elseif ($this->isJsonRequest() &&  $this->settings['capture_ajax']) {
+            $this->sendDataInHeaders(true);
         } elseif (
             $response->hasHeader('Content-Type') &&
             strpos($response->getHeaderLine('Content-Type'), 'html'))
         {
-            $this->injectDebugbar($response, $router);
+            $this->injectDebugbar($response);
+        } else {
+            $this->collect();
         }
 
         return $response;
     }
 
     /**
-     * Is this response a redirection?
-     * 
-     * @param  ResponseInterface $response
+     * Check if this is a request to the Debugbar OpenHandler
      *
      * @return bool
      */
-    protected function isRedirection(ResponseInterface $response)
+    protected function isDebugbarRequest()
+    {
+        /** @var \Psr\Http\Message\RequestInterface $request */
+        $request = $this->container->get('request');
+
+        return preg_match('#^\/_debugbar\/#', $request->getUri()->getPath());
+    }
+
+    /**
+     * Is this response a redirection?
+     *
+     * @param  Response $response
+     *
+     * @return bool
+     */
+    protected function isRedirection(Response $response)
     {
         return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
     }
 
     /**
+     * Is this json request?
+     *
+     * @return bool
+     */
+    protected function isJsonRequest()
+    {
+        /** @var \Psr\Http\Message\RequestInterface $request */
+        $request = $this->container->get('request');
+
+        // If XmlHttpRequest, return true
+        if ($request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest') {
+            return true;
+        }
+
+        // Check if the request wants Json
+        return (
+            $request->hasHeader('Content-Type') &&
+            $request->getHeader('Content-Type') == 'application/json'
+        );
+    }
+
+    /**
+     * Collects the data from the collectors
+     *
+     * @return array
+     */
+    public function collect()
+    {
+        /** @var \Psr\Http\Message\RequestInterface $request */
+        $request = $this->container->get('request');
+
+        $this->data = [
+            '__meta' => [
+                'id' => $this->getCurrentRequestId(),
+                'datetime' => date('Y-m-d H:i:s'),
+                'utime' => microtime(true),
+                'method' => $request->getMethod(),
+                'uri' => $request->getUri()->getPath(),
+                'ip' => $request->getUri()->getHost(),
+            ]
+        ];
+
+        foreach ($this->collectors as $name => $collector) {
+            $this->data[$name] = $collector->collect();
+        }
+
+        // Remove all invalid (non UTF-8) characters
+        array_walk_recursive(
+            $this->data,
+            function (&$item) {
+                if (is_string($item) && !mb_check_encoding($item, 'UTF-8')) {
+                    $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+                }
+            }
+        );
+
+        if ($this->storage !== null) {
+            $this->storage->save($this->getCurrentRequestId(), $this->data);
+        }
+
+        return $this->data;
+    }
+
+    /**
      * Injects the web debug toolbar into the given Response.
      *
-     * @param  ResponseInterface $response
-     * @param  RouterInterface $router
+     * @param  Response $response
      *
      * @return void
      */
-    public function injectDebugbar(ResponseInterface $response, RouterInterface $router)
+    public function injectDebugbar(Response $response)
     {
+        /** @var Slim\Router $router */
+        $router = $this->container->get('router');
+
         $body = $response->getBody();
 
         $renderer = $this->getJavascriptRenderer();
+        if ($this->getStorage()) {
+            $renderer->setOpenHandlerUrl($router->pathFor('debugbar-openhandler'));
+        }
 
         $renderedContent = $renderer->renderHeadSlim($router) . $renderer->render();
 
