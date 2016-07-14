@@ -13,6 +13,7 @@ use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\Storage\FileStorage;
 use Exception;
 use Interop\Container\ContainerInterface as Container;
+use Kitchenu\Debugbar\DataCollector\SlimRouteCollector;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class SlimDebugBar extends DebugBar
@@ -61,6 +62,10 @@ class SlimDebugBar extends DebugBar
 
         if ($collectorsSettings['exceptions']) {
             $this->addCollector(new ExceptionsCollector());
+        }
+
+        if ($collectorsSettings['route']) {
+            $this->addCollector(new SlimRouteCollector($container));
         }
 
         if ($collectorsSettings['request']) {

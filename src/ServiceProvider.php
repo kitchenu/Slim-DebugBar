@@ -25,6 +25,7 @@ class ServiceProvider
             'time'       => true,  // Time Datalogger
             'memory'     => true,  // Memory usage
             'exceptions' => true,  // Exception displayer
+            'route'      => true,
             'request'    => true,  // Request logger
         ]
     ];
