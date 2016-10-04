@@ -38,6 +38,9 @@ class SlimDebugBar extends DebugBar
         $this->settings = $settings;
 
         if ($settings['storage']['enabled']) {
+            if(!is_dir($settings['storage']['path'])){
+                mkdir($settings['storage']['path']);
+            }
             $this->setStorage(new FileStorage($settings['storage']['path']));
         }
 
@@ -106,6 +109,44 @@ class SlimDebugBar extends DebugBar
             /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
             $collector = $this->getCollector('time');
             $collector->stopMeasure($name);
+        }
+    }
+    
+
+    /**
+     * Adds a measure
+     *
+     * @param  string $label
+     * @param  float $start
+     * @param  float $end
+     *
+     * @return void
+     */
+    public function addMeasure($label, $start, $end)
+    {
+        if ($this->hasCollector('time')) {
+            /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
+            $collector = $this->getCollector('time');
+            $collector->addMeasure($label, $start, $end);
+        }
+    }
+
+    /**
+     * Utility function to measure the execution of a Closure
+     *
+     * @param  string $label
+     * @param  Closure $closure
+     *
+     * @return void
+     */
+    public function measure($label, Closure $closure)
+    {
+        if ($this->hasCollector('time')) {
+            /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
+            $collector = $this->getCollector('time');
+            $collector->measure($label, $closure);
+        } else {
+            $closure();
         }
     }
 
@@ -289,43 +330,6 @@ class SlimDebugBar extends DebugBar
 
         $body->rewind();
         $body->write($content);
-    }
-
-    /**
-     * Adds a measure
-     *
-     * @param  string $label
-     * @param  float $start
-     * @param  float $end
-     *
-     * @return void
-     */
-    public function addMeasure($label, $start, $end)
-    {
-        if ($this->hasCollector('time')) {
-            /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
-            $collector = $this->getCollector('time');
-            $collector->addMeasure($label, $start, $end);
-        }
-    }
-
-    /**
-     * Utility function to measure the execution of a Closure
-     *
-     * @param  string $label
-     * @param  Closure $closure
-     *
-     * @return void
-     */
-    public function measure($label, Closure $closure)
-    {
-        if ($this->hasCollector('time')) {
-            /** @var \DebugBar\DataCollector\TimeDataCollector $collector */
-            $collector = $this->getCollector('time');
-            $collector->measure($label, $closure);
-        } else {
-            $closure();
-        }
     }
 
     /**

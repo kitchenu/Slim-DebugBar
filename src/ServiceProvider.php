@@ -53,6 +53,10 @@ class ServiceProvider
             return new SlimDebugBar($container, $this->settings);
         };
 
+        if (!$this->settings['enabled']) {
+            return;
+        }
+
         $app->group('/_debugbar', function() {
             $this->get('/open', 'Kitchenu\Debugbar\Controllers\OpenHandlerController:handle')
                 ->setName('debugbar-openhandler');
@@ -63,10 +67,6 @@ class ServiceProvider
             $this->get('/assets/javascript', 'Kitchenu\Debugbar\Controllers\AssetController:js')
                 ->setName('debugbar-assets-js');
         });
-
-        if (!$this->settings['enabled']) {
-            return;
-        }
 
         $app->add(new Debugbar($container['debugbar'], $container['router']));
     }
