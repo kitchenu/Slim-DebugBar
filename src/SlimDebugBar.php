@@ -64,7 +64,9 @@ class SlimDebugBar extends DebugBar
         }
 
         if ($collectorsSettings['exceptions']) {
-            $this->addCollector(new ExceptionsCollector());
+            $exceptionCollector = new ExceptionsCollector();
+            $exceptionCollector->setChainExceptions(true);
+            $this->addCollector($exceptionCollector);
         }
 
         if ($collectorsSettings['route']) {

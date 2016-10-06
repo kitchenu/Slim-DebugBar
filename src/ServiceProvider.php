@@ -16,7 +16,7 @@ class ServiceProvider
         'enabled' => true,
         'storage' => [
             'enabled' => true,
-            'path'    => __DIR__ . '/../../../../debugbar',
+            'path'    => '',
         ],
         'capture_ajax' => true,
         'collectors' => [
@@ -36,6 +36,10 @@ class ServiceProvider
     public function __construct(array $settings = [])
     {
         $this->settings = array_merge($this->settings, $settings);
+
+        if (empty($this->settings['storage']['path'])) {
+            $this->settings['storage']['path'] = __DIR__ . '/../../../../debugbar';
+        }
     }
 
     /**
@@ -68,6 +72,6 @@ class ServiceProvider
                 ->setName('debugbar-assets-js');
         });
 
-        $app->add(new Debugbar($container['debugbar'], $container['router']));
+        $app->add(new Debugbar($container['debugbar']));
     }
 }
