@@ -2,25 +2,36 @@
 
 namespace Kitchenu\Debugbar\Middleware;
 
+use Exception;
 use Kitchenu\Debugbar\SlimDebugBar;
+use Slim\Handlers\Error;
 
 class Debugbar
 {
     /**
-     * The DebugBar instance
+     * The SlimDebugBar instance
      *
-     * @var SlimDebugbar
+     * @var SlimDebugBar
      */
     protected $debugbar;
 
     /**
+     * The Error instance
+     *
+     * @var Error
+     */
+    protected $error;
+
+    /**
      * Create a new middleware instance.
      *
-     * @param  SlimDebugBar $debugbar
+     * @param SlimDebugBar
+     * @param Error
      */
-    public function __construct(SlimDebugBar $debugbar)
+    public function __construct(SlimDebugBar $debugbar, Error $error)
     {
         $this->debugbar = $debugbar;
+        $this->error = $error;
     }
 
     /**
@@ -34,7 +45,13 @@ class Debugbar
      */
     public function __invoke($request, $response, $next)
     {
-        $response = $next($request, $response);
+        try {
+            $response = $next($request, $response); 
+        } catch (Exception $e) {
+            $this->debugbar->addException($e);
+            // Handle the given exception
+            $response = $this->error->__invoke($request, $response, $e);
+        }
 
         // Modify the response to add the Debugbar
         $this->debugbar->modifyResponse($response);

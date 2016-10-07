@@ -20,7 +20,11 @@ abstract class SlimDebugBarTestCase  extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->app = new App();
+        $this->app = new App([
+            'settings' => [
+                'displayErrorDetails' => true,
+            ]
+        ]);
         $container = $this->app->getContainer();
         
         $settings = [
