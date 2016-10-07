@@ -10,6 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use ReflectionFunction;
 use ReflectionMethod;
 use Slim\DeferredCallable;
+use Slim\Http\Request;
 use Slim\Route;
 use Slim\Router;
 
@@ -32,10 +33,10 @@ class SlimRouteCollector extends DataCollector implements Renderable
     /**
      * @param Container $container
      */
-    public function __construct(Container $container)
+    public function __construct(Router $router, Request $request)
     {
-        $this->router = $container->get('router');
-        $this->request = $container->get('request');
+        $this->router = $router;
+        $this->request = $request;
     }
 
     /**

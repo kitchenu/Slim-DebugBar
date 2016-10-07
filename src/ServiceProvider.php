@@ -72,6 +72,6 @@ class ServiceProvider
                 ->setName('debugbar-assets-js');
         });
 
-        $app->add(new Debugbar($container['debugbar']));
+        $app->add(new Debugbar($container['debugbar'], $container['errorHandler']));
     }
 }

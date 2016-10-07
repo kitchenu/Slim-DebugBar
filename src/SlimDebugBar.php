@@ -70,7 +70,9 @@ class SlimDebugBar extends DebugBar
         }
 
         if ($collectorsSettings['route']) {
-            $this->addCollector(new SlimRouteCollector($container));
+            $this->addCollector(
+                new SlimRouteCollector($container->router, $container->request)
+            );
         }
 
         if ($collectorsSettings['request']) {
