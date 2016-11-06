@@ -20,3 +20,12 @@ $app = new Slim\App();
 $provider = new Kitchenu\Debugbar\ServiceProvider();
 $provider->register($app);
 ```
+
+## Bridge collectors
+
+```
+$debugbar = $app->getContainer()->get('debugbar');
+
+$pdo = new DebugBar\DataCollector\PDO\TraceablePDO(new PDO('sqlite::memory:'));
+$debugbar->addCollector(new DebugBar\DataCollector\PDO\PDOCollector($pdo));
+```
