@@ -24,8 +24,12 @@ $provider->register($app);
 ## Bridge collectors
 
 ```
-$debugbar = $app->getContainer()->get('debugbar');
+$container = $app->getContainer();
 
-$pdo = new DebugBar\DataCollector\PDO\TraceablePDO(new PDO('sqlite::memory:'));
-$debugbar->addCollector(new DebugBar\DataCollector\PDO\PDOCollector($pdo));
+$container['pdo'] = function () {
+    return new PDO('sqlite::memory:');
+};
+
+$collector = new DebugBar\DataCollector\PDO\PDOCollector($container->pdo);
+$container->debugbar->addCollector($collector);
 ```
