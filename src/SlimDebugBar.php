@@ -225,7 +225,7 @@ class SlimDebugBar extends DebugBar
         /** @var \Psr\Http\Message\RequestInterface $request */
         $request = $this->container->get('request');
 
-        return preg_match('#^\/_debugbar\/#', $request->getUri()->getPath());
+        return preg_match('#^(\/|)_debugbar\/#', $request->getUri()->getPath());
     }
 
     /**
