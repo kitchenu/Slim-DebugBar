@@ -45,7 +45,7 @@ class SlimRouteCollector extends DataCollector implements Renderable
     public function collect()
     {
         $routeInfo = $this->router->dispatch($this->request);
-        $route = isset($routeInfo[1]) ? $this->router->lookupRoute($routeInfo[1]) : null;
+        $route = (isset($routeInfo[1]) && is_string($routeInfo[1])) ? $this->router->lookupRoute($routeInfo[1]) : null;
 
         return $route ? $this->getRouteInformation($route) : null;
     }
