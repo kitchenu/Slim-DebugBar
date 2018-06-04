@@ -11,6 +11,9 @@ use DebugBar\DataCollector\PhpInfoCollector;
 use DebugBar\DataCollector\RequestDataCollector;
 use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\Storage\FileStorage;
+use DebugBar\Storage\MemcachedStorage;
+use DebugBar\Storage\PdoStorage;
+use DebugBar\Storage\RedisStorage;
 use Exception;
 use Interop\Container\ContainerInterface as Container;
 use Kitchenu\Debugbar\DataCollector\SlimRouteCollector;
@@ -38,10 +41,27 @@ class SlimDebugBar extends DebugBar
         $this->settings = $settings;
 
         if ($settings['storage']['enabled']) {
-            if(!is_dir($settings['storage']['path'])){
-                mkdir($settings['storage']['path']);
+            switch ($settings['storage']['driver']) {
+                case 'pdo':
+                    $storage = new PdoStorage($settings['storage']['connection']);
+                    break;
+                case 'redis':
+                    $storage = new RedisStorage($settings['storage']['connection']);
+                    break;
+                case 'memcached':
+                    $storage = new MemcachedStorage($settings['storage']['connection']);
+                    break;
+                case 'file':
+                default:
+                    $path = $settings['storage']['path'];
+                    if(!is_dir($path)){
+                        mkdir($path);
+                    }
+                    $storage = new FileStorage($path);
+                    break;
             }
-            $this->setStorage(new FileStorage($settings['storage']['path']));
+
+            $this->setStorage($storage);
         }
 
         $collectorsSettings = $settings['collectors'];

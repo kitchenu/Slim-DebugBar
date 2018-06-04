@@ -16,7 +16,9 @@ class ServiceProvider
         'enabled' => true,
         'storage' => [
             'enabled' => true,
-            'path'    => '',
+            'driver'  => 'file',  // file, pdo, redis
+            'path'    => __DIR__ . '/../../../../debugbar',
+            'connection' => null
         ],
         'capture_ajax' => true,
         'collectors' => [
@@ -35,10 +37,8 @@ class ServiceProvider
      */
     public function __construct(array $settings = [])
     {
-        $this->settings = array_merge($this->settings, $settings);
-
-        if (empty($this->settings['storage']['path'])) {
-            $this->settings['storage']['path'] = __DIR__ . '/../../../../debugbar';
+        foreach ($settings as $key => $setting) {
+            $this->settings[$key] = array_merge($this->settings[$key], $setting);
         }
     }
 
