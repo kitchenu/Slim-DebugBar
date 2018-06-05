@@ -30,6 +30,7 @@ abstract class SlimDebugBarTestCase  extends PHPUnit_Framework_TestCase
         $settings = [
             'storage' => [
                 'enabled' => true,
+                'driver'  => 'file',
                 'path'    => __DIR__ . '/../debugbar',
             ],
             'capture_ajax' => true,
