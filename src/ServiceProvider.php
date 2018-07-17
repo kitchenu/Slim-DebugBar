@@ -37,9 +37,7 @@ class ServiceProvider
      */
     public function __construct(array $settings = [])
     {
-        foreach ($settings as $key => $setting) {
-            $this->settings[$key] = array_merge($this->settings[$key], $setting);
-        }
+        $this->settings = array_replace_recursive($this->settings, $settings);
 
         if (empty($this->settings['storage']['path'])) {
             $this->settings['storage']['path'] = __DIR__ . '/../../../../debugbar';
