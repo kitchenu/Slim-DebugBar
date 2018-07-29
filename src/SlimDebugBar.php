@@ -29,7 +29,24 @@ class SlimDebugBar extends DebugBar
     /**
      * @var array
      */
-    protected $settings;
+    protected $settings = [
+        'storage' => [
+            'enabled' => true,
+            'driver'  => 'file',  // file, pdo, redis
+            'path'    => '',
+            'connection' => null
+        ],
+        'capture_ajax' => true,
+        'collectors' => [
+            'phpinfo'    => true,  // Php version
+            'messages'   => true,  // Messages
+            'time'       => true,  // Time Datalogger
+            'memory'     => true,  // Memory usage
+            'exceptions' => true,  // Exception displayer
+            'route'      => true,
+            'request'    => true,  // Request logger
+        ]
+    ];
 
     /**
      * @param Container $container
@@ -38,22 +55,24 @@ class SlimDebugBar extends DebugBar
     public function __construct(Container $container, $settings)
     {
         $this->container = $container;
-        $this->settings = $settings;
+        $this->settings = array_replace_recursive($this->settings, $settings);
 
-        if ($settings['storage']['enabled']) {
-            switch ($settings['storage']['driver']) {
+        $storageSettings = $settings['storage'];
+
+        if ($storageSettings['enabled']) {
+            switch ($storageSettings['driver']) {
                 case 'pdo':
-                    $storage = new PdoStorage($settings['storage']['connection']);
+                    $storage = new PdoStorage($storageSettings['connection']);
                     break;
                 case 'redis':
-                    $storage = new RedisStorage($settings['storage']['connection']);
+                    $storage = new RedisStorage($storageSettings['connection']);
                     break;
                 case 'memcached':
-                    $storage = new MemcachedStorage($settings['storage']['connection']);
+                    $storage = new MemcachedStorage($storageSettings['connection']);
                     break;
                 case 'file':
                 default:
-                    $path = $settings['storage']['path'];
+                    $path = $storageSettings['path'];
                     if(!is_dir($path)){
                         mkdir($path);
                     }
@@ -100,7 +119,7 @@ class SlimDebugBar extends DebugBar
         }
 
         $renderer = $this->getJavascriptRenderer();
-        $renderer->setBindAjaxHandlerToXHR($settings['capture_ajax']);
+        $renderer->setBindAjaxHandlerToXHR($this->settings['capture_ajax']);
     }
 
     /**
