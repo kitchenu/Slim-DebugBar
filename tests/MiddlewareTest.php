@@ -18,7 +18,23 @@ class MiddlewareTest extends SlimDebugBarTestCase
         $this->container = $this->app->getContainer();
     }
 
-    public function testDebugbar()
+    public function testDebugbarWithDefaultErrorHandler()
+    {
+        $this->invokeDebugbarMiddleware();
+    }
+
+    public function testDebugbarWithCustomErrorHandler()
+    {
+        $this->container['errorHandler'] = function () {
+            return function ($request, $response, $e) {
+                return $response;
+            };
+        };
+
+        $this->invokeDebugbarMiddleware();
+    }
+
+    public function invokeDebugbarMiddleware()
     {
         $debugbar = new Debugbar(
             $this->container->debugbar,
@@ -30,7 +46,7 @@ class MiddlewareTest extends SlimDebugBarTestCase
                 $this->container->request,
                 $this->container->response,
                 function () {
-                    throw new Exception('test'); 
+                    throw new Exception('test');
                 }
             );
         } catch (Exception $e) {
